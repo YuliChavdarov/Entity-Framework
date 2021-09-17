@@ -9,7 +9,7 @@ namespace ConnectToMSSQL
         static void Main(string[] args)
         {
 
-            string connectionString = "Server=.; Integrated Security = true; Database = SoftUni";
+            string connectionString = @"Server=.; Integrated Security = true; Database = SoftUni";
 
             List<Employee> employees = new List<Employee>();
 
