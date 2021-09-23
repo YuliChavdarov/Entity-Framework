@@ -1,5 +1,6 @@
 ﻿namespace BookShop
 {
+    using BookShop.Models;
     using BookShop.Models.Enums;
     using Data;
     using Initializer;
@@ -7,6 +8,7 @@
     using System;
     using System.Linq;
     using System.Text;
+    using Z.EntityFramework.Plus;
 
     public class StartUp
     {
@@ -15,7 +17,8 @@
             using var db = new BookShopContext();
             //DbInitializer.ResetDatabase(db);
 
-            Console.WriteLine(GetBooksReleasedBefore(db, "12-04-1992"));
+            IncreasePrices(db);
+            //Console.WriteLine(RemoveBooks(db));
         }
 
         public static string GetBooksByAgeRestriction(BookShopContext context, string command)
@@ -112,6 +115,88 @@
             foreach (var book in books)
             {
                 sb.AppendLine($"{book.Title}");
+
+        public static string GetAuthorNamesEndingIn(BookShopContext context, string input)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var authors = context.Authors
+                .Where(x => x.FirstName.EndsWith(input))
+                .Select(x => x.FirstName + " " + x.LastName)
+                .OrderBy(x => x)
+                .ToList();
+
+            foreach(var author in authors)
+            {
+                sb.AppendLine($"{author}");
+            }
+
+            return sb.ToString().Trim();
+        }
+
+        public static string GetBookTitlesContaining(BookShopContext context, string input)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var titles = context.Books
+                .Where(x => x.Title.ToLower().Contains(input.ToLower()))
+                .OrderBy(x => x.Title)
+                .Select(x => x.Title)
+                .ToList();
+
+            foreach(var title in titles)
+            {
+                sb.AppendLine($"{title}");
+            }
+
+            return sb.ToString().Trim();
+        }
+
+        public static string GetBooksByAuthor(BookShopContext context, string input)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var books = context.Books
+                .Where(x => x.Author.LastName.ToLower().StartsWith(input.ToLower()))
+                .OrderBy(x => x.BookId)
+                .Select(x => new
+                {
+                    x.Title,
+                    AuthorFullName = x.Author.FirstName + " " + x.Author.LastName
+                })
+                .ToList();
+
+            foreach (var book in books)
+            {
+                sb.AppendLine($"{book.Title} ({book.AuthorFullName})");
+            }
+
+            return sb.ToString().Trim();
+        }
+
+        public static int CountBooks(BookShopContext context, int lengthCheck)
+        {
+            return context.Books
+                .Where(x => x.Title.Length > lengthCheck)
+                .Count();
+        }
+
+        public static string CountCopiesByAuthor(BookShopContext context)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var authors = context.Authors
+                .Select(x => new
+                {
+                    AuthorName = x.FirstName + " " + x.LastName,
+                    CopiesCount = x.Books.Sum(x => x.Copies)
+                })
+                .OrderByDescending(x => x.CopiesCount)
+                .ToList();
+
+            foreach (var author in authors)
+            {
+                sb.AppendLine($"{author.AuthorName} - {author.CopiesCount}");
             }
 
             return sb.ToString().Trim();
@@ -139,6 +224,74 @@
                 sb.AppendLine($"{book.Title} - {book.EditionType} - ${book.Price:0.00}");
             }
             return sb.ToString().Trim();
+        }
+
+        public static string GetTotalProfitByCategory(BookShopContext context)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var categories = context.Categories
+                .Select(x => new
+                {
+                    CategoryName = x.Name,
+                    TotalProfit = x.CategoryBooks.Sum(x => x.Book.Price * x.Book.Copies)
+                })
+                .OrderByDescending(x => x.TotalProfit)
+                .ThenBy(x => x.CategoryName)
+                .ToList();
+
+            foreach (var category in categories)
+            {
+                sb.AppendLine($"{category.CategoryName} ${category.TotalProfit:0.00}");
+            }
+
+            return sb.ToString().Trim();
+        }
+
+        public static string GetMostRecentBooks(BookShopContext context)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var categories = context.Categories
+                .Select(x => new
+                {
+                    CategoryName = x.Name,
+                    MostRecent = x.CategoryBooks
+                    .Where(x => x.Book.ReleaseDate.HasValue)
+                    .OrderByDescending(x => x.Book.ReleaseDate)
+                    .Take(3)
+                    .Select(x => new
+                    {
+                        Title = x.Book.Title,
+                        ReleaseDate = x.Book.ReleaseDate
+                    })
+                    .ToList()
+                })
+                .OrderBy(x => x.CategoryName)
+                .ToList();
+
+            foreach (var category in categories)
+            {
+                sb.AppendLine($"--{category.CategoryName}");
+                foreach (var book in category.MostRecent)
+                {
+                    sb.AppendLine($"{book.Title} ({book.ReleaseDate?.Year})");
+                }
+            }
+
+            return sb.ToString().Trim();
+        }
+
+        public static void IncreasePrices(BookShopContext context)
+        {
+            var books = context.Books
+                .Where(x => x.ReleaseDate.HasValue && x.ReleaseDate.Value.Year < 2010)
+                .UpdateFromQuery(x => new Book { Price = x.Price + 5M });
+        }
+
+        public static int RemoveBooks(BookShopContext context)
+        {
+            return context.Books.Where(x => x.Copies < 4200).DeleteFromQuery();
         }
     }
 }
