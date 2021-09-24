@@ -97,6 +97,25 @@
             return sb.ToString().TrimEnd();
         }
 
+        public static string GetBooksByCategory(BookShopContext context, string input)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            string[] categories = input.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            var books = context.Books
+                .Include(x => x.BookCategories)
+                .ThenInclude(x => x.Category)
+                .ToArray()
+                .Where(x => x.BookCategories.Any(x => categories.Contains(x.Category.Name.ToLower())))
+                .Select(x => new { x.Title })
+                .OrderBy(x => x.Title)
+                .ToArray();
+
+            foreach (var book in books)
+            {
+                sb.AppendLine($"{book.Title}");
+
         public static string GetAuthorNamesEndingIn(BookShopContext context, string input)
         {
             StringBuilder sb = new StringBuilder();
@@ -180,6 +199,30 @@
                 sb.AppendLine($"{author.AuthorName} - {author.CopiesCount}");
             }
 
+            return sb.ToString().Trim();
+        }
+
+        public static string GetBooksReleasedBefore(BookShopContext context, string date)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            DateTime releaseDate = DateTime.ParseExact(date, "dd-MM-yyyy", null);
+
+            var books = context.Books
+                .Where(x => x.ReleaseDate < releaseDate)
+                .OrderByDescending(x => x.ReleaseDate)
+                .Select(x => new 
+                { 
+                    x.Title, 
+                    x.EditionType, 
+                    x.Price 
+                })
+                .ToList();
+
+            foreach (var book in books)
+            {
+                sb.AppendLine($"{book.Title} - {book.EditionType} - ${book.Price:0.00}");
+            }
             return sb.ToString().Trim();
         }
 
