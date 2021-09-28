@@ -8,11 +8,11 @@ namespace ProductShop.DTO
     [XmlType("User")]
     public class UserInputModel
     {
-        [XmlAttribute("firstName")]
+        [XmlElement("firstName")]
         public string FirstName { get; set; }
-        [XmlAttribute("lastName")]
+        [XmlElement("lastName")]
         public string LastName { get; set; }
-        [XmlAttribute("age")]
-        public int? Age { get; set; }
+        [XmlElement("age")]
+        public int Age { get; set; }
     }
 }

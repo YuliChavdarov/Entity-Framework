@@ -21,19 +21,19 @@ namespace CarDealer
             CarDealerContext context = new CarDealerContext();
             string json;
 
-            //context.Database.EnsureDeleted();
-            //context.Database.EnsureCreated();
+            context.Database.EnsureDeleted();
+            context.Database.EnsureCreated();
 
-            //json = File.ReadAllText("../../../Datasets/suppliers.json");
-            //Console.WriteLine(ImportSuppliers(context, json));
-            //json = File.ReadAllText("../../../Datasets/parts.json");
-            //Console.WriteLine(ImportParts(context, json));
-            //json = File.ReadAllText("../../../Datasets/cars.json");
-            //Console.WriteLine(ImportCars(context, json));
-            //json = File.ReadAllText("../../../Datasets/customers.json");
-            //Console.WriteLine(ImportCustomers(context, json));
-            //json = File.ReadAllText("../../../Datasets/sales.json");
-            //Console.WriteLine(ImportSales(context, json));
+            json = File.ReadAllText("../../../Datasets/suppliers.json");
+            Console.WriteLine(ImportSuppliers(context, json));
+            json = File.ReadAllText("../../../Datasets/parts.json");
+            Console.WriteLine(ImportParts(context, json));
+            json = File.ReadAllText("../../../Datasets/cars.json");
+            Console.WriteLine(ImportCars(context, json));
+            json = File.ReadAllText("../../../Datasets/customers.json");
+            Console.WriteLine(ImportCustomers(context, json));
+            json = File.ReadAllText("../../../Datasets/sales.json");
+            Console.WriteLine(ImportSales(context, json));
 
             Console.WriteLine(GetSalesWithAppliedDiscount(context));
         }

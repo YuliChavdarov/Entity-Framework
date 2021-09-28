@@ -19,7 +19,7 @@ namespace ProductShop
 
         public static void Main(string[] args)
         {
-            ProductShopContext context = new ProductShopContext();
+            //ProductShopContext context = new ProductShopContext();
             //context.Database.EnsureDeleted();
             //context.Database.EnsureCreated();
 

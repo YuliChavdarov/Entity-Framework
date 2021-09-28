@@ -10,6 +10,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using System.Xml.Serialization;
+using ProductShop.DTO.OutputModels;
 
 namespace ProductShop
 {
@@ -23,9 +24,10 @@ namespace ProductShop
             ProductShopContext context = new ProductShopContext();
             //context.Database.EnsureDeleted();
             //context.Database.EnsureCreated();
+            //string xml;
 
-            var xml = File.ReadAllText("../../../Datasets/users.xml");
-            Console.WriteLine(ImportUsers(context, xml));
+            //xml = File.ReadAllText("../../../Datasets/users.xml");
+            //Console.WriteLine(ImportUsers(context, xml));
             //xml = File.ReadAllText("../../../Datasets/products.xml");
             //ImportProducts(context, xml);
             //xml = File.ReadAllText("../../../Datasets/categories.xml");
@@ -33,7 +35,7 @@ namespace ProductShop
             //xml = File.ReadAllText("../../../Datasets/categories-products.xml");
             //ImportCategoryProducts(context, xml);
 
-            //Console.WriteLine(GetUsersWithProducts(context));
+            Console.WriteLine(GetUsersWithProducts(context));
 
         }
 
@@ -41,7 +43,7 @@ namespace ProductShop
         {
             var serializer = new XmlSerializer(typeof(List<UserInputModel>), new XmlRootAttribute("Users"));
 
-            var userInputModels = (IEnumerable<UserInputModel>)serializer.Deserialize(new StringReader(inputXml));
+            var userInputModels = (List<UserInputModel>)serializer.Deserialize(new StringReader(inputXml));
 
             var users = mapper.Map<IEnumerable<User>>(userInputModels);
 
@@ -53,19 +55,23 @@ namespace ProductShop
 
         public static string ImportProducts(ProductShopContext context, string inputXml)
         {
-            var productInputModels = JsonConvert.DeserializeObject<List<ProductInputModel>>(inputXml);
+            var serializer = new XmlSerializer(typeof(List<ProductInputModel>), new XmlRootAttribute("Products"));
 
-            List<Product> products = mapper.Map<List<Product>>(productInputModels);
+            var productInputModels = (List<ProductInputModel>)serializer.Deserialize(new StringReader(inputXml));
+
+            var products = mapper.Map<IEnumerable<Product>>(productInputModels);
 
             context.Products.AddRange(products);
             context.SaveChanges();
 
-            return $"Successfully imported {products.Count}";
+            return $"Successfully imported {products.Count()}";
         }
 
         public static string ImportCategories(ProductShopContext context, string inputXml)
         {
-            var categoriesInputModels = JsonConvert.DeserializeObject<IEnumerable<CategoriesInputModel>>(inputXml);
+            var serializer = new XmlSerializer(typeof(List<CategoriesInputModel>), new XmlRootAttribute("Categories"));
+
+            var categoriesInputModels = (List<CategoriesInputModel>)serializer.Deserialize(new StringReader(inputXml));
 
             IEnumerable<Category> categories = mapper.Map<IEnumerable<Category>>(categoriesInputModels).Where(x => x.Name != null);
 
@@ -77,7 +83,9 @@ namespace ProductShop
 
         public static string ImportCategoryProducts(ProductShopContext context, string inputXml)
         {
-            var categoriesProductsInputModels = JsonConvert.DeserializeObject<IEnumerable<CategoriesProductsInputModel>>(inputXml);
+            var serializer = new XmlSerializer(typeof(List<CategoriesProductsInputModel>), new XmlRootAttribute("CategoryProducts"));
+
+            var categoriesProductsInputModels = (List<CategoriesProductsInputModel>)serializer.Deserialize(new StringReader(inputXml));
 
             IEnumerable<CategoryProduct> categoriesProducts = mapper.Map<IEnumerable<CategoryProduct>>(categoriesProductsInputModels);
 
@@ -92,15 +100,24 @@ namespace ProductShop
             var products = context.Products
                 .Where(x => x.Price >= 500 && x.Price <= 1000)
                 .OrderBy(x => x.Price)
-                .Select(x => new
+                .Take(10)
+                .Select(x => new ProductOutputModel
                 {
-                    name = x.Name,
-                    price = x.Price,
-                    seller = x.Seller.FirstName + " " + x.Seller.LastName
-                }
-                );
+                    Name = x.Name,
+                    Price = x.Price,
+                    Buyer = x.Buyer.FirstName + " " + x.Buyer.LastName
+                })
+                .ToList();
 
-            return JsonConvert.SerializeObject(products, Formatting.Indented);
+            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+            ns.Add("", "");
+
+            var serializer = new XmlSerializer(typeof(List<ProductOutputModel>), new XmlRootAttribute("Products"));
+
+            StringWriter writer = new StringWriter();
+
+            serializer.Serialize(writer, products, ns);
+            return writer.ToString();
         }
 
         public static string GetSoldProducts(ProductShopContext context)
@@ -109,73 +126,78 @@ namespace ProductShop
                 .Where(x => x.ProductsSold.Where(x => x.BuyerId != null).Count() > 0)
                 .OrderBy(x => x.LastName)
                 .ThenBy(x => x.FirstName)
-                .Select(x => new
+                .Take(5)
+                .Select(x => new UserOutputModel
                 {
-                    firstName = x.FirstName,
-                    lastName = x.LastName,
-                    soldProducts = x.ProductsSold
+                    FirstName = x.FirstName,
+                    LastName = x.LastName,
+                    ProductsSold = x.ProductsSold
                     .Where(x => x.BuyerId != null)
-                    .Select(x => new
+                    .Select(x => new ProductOutputModel
                     {
-                        name = x.Name,
-                        price = x.Price,
-                        buyerFirstName = x.Buyer.FirstName,
-                        buyerLastName = x.Buyer.LastName
+                        Name = x.Name,
+                        Price = x.Price,
                     })
+                    .ToList()
                 })
                 .ToList();
 
-            return JsonConvert.SerializeObject(products, Formatting.Indented);
+            return XmlConverter.Serialize<List<UserOutputModel>>(products, "Users");
+
         }
 
         public static string GetCategoriesByProductsCount(ProductShopContext context)
         {
             var categories = context.Categories
                 .Include(x => x.CategoryProducts)
-                .Select(x => new
+                .Select(x => new CategoriesOutputModel
                 {
-                    category = x.Name,
-                    productsCount = x.CategoryProducts.Count,
-                    averagePrice = x.CategoryProducts.Average(x => x.Product.Price).ToString("0.00"),
-                    totalRevenue = x.CategoryProducts.Sum(x => x.Product.Price).ToString("0.00")
+                    Name = x.Name,
+                    ProductsCount = x.CategoryProducts.Count,
+                    AveragePrice = x.CategoryProducts.Average(x => x.Product.Price),
+                    TotalRevenue = x.CategoryProducts.Sum(x => x.Product.Price)
                 })
-                .OrderByDescending(x => x.productsCount)
+                .OrderByDescending(x => x.ProductsCount)
+                .ThenBy(x => x.TotalRevenue)
                 .ToList();
 
-            return JsonConvert.SerializeObject(categories, Formatting.Indented);
+            return XmlConverter.Serialize(categories, "Categories");
         }
 
         public static string GetUsersWithProducts(ProductShopContext context)
         {
             var users = context.Users
-                .Select(x => new
+                .Include(x => x.ProductsSold)
+                .ToList()
+                .Select(x => new DTO.OutputModels.GetUsersWithProducts.UserOutputModel
                 {
-                    firstName = x.FirstName,
-                    lastName = x.LastName,
-                    age = x.Age,
-                    soldProducts = new
+                    FirstName = x.FirstName,
+                    LastName = x.LastName,
+                    Age = x.Age,
+                    SoldProducts = new DTO.OutputModels.GetUsersWithProducts.SoldProductsModel
                     {
-                        count = x.ProductsSold.Where(x => x.BuyerId != null).Count(),
-                        products = x.ProductsSold.Where(x => x.BuyerId != null).Select(x => new
+                        Count = x.ProductsSold.Where(x => x.BuyerId != null).Count(),
+                        Products = x.ProductsSold.Where(x => x.BuyerId != null).Select(x => new DTO.OutputModels.GetUsersWithProducts.ProductOutputModel
                         {
-                            name = x.Name,
-                            price = x.Price
-                        }
-                        )
+                            Name = x.Name,
+                            Price = x.Price
+                        })
+                        .ToList()
                     }
                 }
                 )
-                .Where(x => x.soldProducts.count >= 1)
-                .OrderByDescending(x => x.soldProducts.count)
+                .Where(x => x.SoldProducts.Count >= 1)
+                .OrderByDescending(x => x.SoldProducts.Count)
+                .Take(10)
                 .ToList();
 
-            var result = new
+            var result = new DTO.OutputModels.GetUsersWithProducts.ResultOutputModel
             {
-                usersCount = users.Where(x => x.soldProducts.count >= 1).Count(),
-                users = users
+                UsersCount = users.Where(x => x.SoldProducts.Count >= 1).Count(),
+                Users = users
             };
 
-            return JsonConvert.SerializeObject(result, Formatting.Indented, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            return XmlConverter.Serialize(result, "Users");
         }
     }
 }
