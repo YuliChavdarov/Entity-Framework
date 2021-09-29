@@ -173,7 +173,7 @@ namespace ProductShop
                 {
                     FirstName = x.FirstName,
                     LastName = x.LastName,
-                    Age = x.Age,
+                    Age = x.Age != null ? x.Age.ToString() : null,
                     SoldProducts = new DTO.OutputModels.GetUsersWithProducts.SoldProductsModel
                     {
                         Count = x.ProductsSold.Where(x => x.BuyerId != null).Count(),
@@ -182,19 +182,20 @@ namespace ProductShop
                             Name = x.Name,
                             Price = x.Price
                         })
+                        .OrderByDescending(x => x.Price)
                         .ToList()
                     }
                 }
                 )
                 .Where(x => x.SoldProducts.Count >= 1)
                 .OrderByDescending(x => x.SoldProducts.Count)
-                .Take(10)
+                
                 .ToList();
 
             var result = new DTO.OutputModels.GetUsersWithProducts.ResultOutputModel
             {
                 UsersCount = users.Where(x => x.SoldProducts.Count >= 1).Count(),
-                Users = users
+                Users = users.Take(10).ToList()
             };
 
             return XmlConverter.Serialize(result, "Users");

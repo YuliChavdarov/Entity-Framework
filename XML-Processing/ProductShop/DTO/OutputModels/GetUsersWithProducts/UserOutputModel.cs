@@ -14,7 +14,7 @@ namespace ProductShop.DTO.OutputModels.GetUsersWithProducts
         [XmlElement("lastName")]
         public string LastName { get; set; }
         [XmlElement("age")]
-        public int? Age { get; set; }
+        public string Age { get; set; }
 
         [XmlElement("SoldProducts")]
         public SoldProductsModel SoldProducts { get; set; }
