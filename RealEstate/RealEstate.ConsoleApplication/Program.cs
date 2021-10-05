@@ -11,6 +11,8 @@ namespace RealEstate.ConsoleApplication
         {
             ApplicationDbContext context = new ApplicationDbContext();
 
+
+
             ITagsService tagsService = new TagsService(context);
             
             //tagsService.BulkAssignTags();

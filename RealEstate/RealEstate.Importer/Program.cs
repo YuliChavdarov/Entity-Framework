@@ -11,7 +11,7 @@ namespace RealEstate.Importer
     {
         static void Main(string[] args)
         {
-            ImportPropertiesFromJsonFile(@"imot.bg-raw-data-2021-03-18.json");
+            //ImportPropertiesFromJsonFile(@"imot.bg-raw-data-2021-03-18.json");
         }
 
         private static void ImportPropertiesFromJsonFile(string path)

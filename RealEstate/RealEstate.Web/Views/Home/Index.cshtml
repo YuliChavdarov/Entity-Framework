@@ -1,8 +1,25 @@
-﻿@{
+﻿@using RealEstate.Services.DTO.OutputModels;
+@model IEnumerable<DistrictOutputModel>
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome, @DateTime.Now.DayOfWeek</h1>
+    <h1 class="display-4">Welcome to Real Estates</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+<table class="table table-striped table-hover table-sm">
+    <tr>
+        <td>District</td>
+        <td>Avg. price</td>
+        <td>Properties count</td>
+    </tr>
+    @foreach (var district in this.Model.Where(x => x.PropertiesCount > 5))
+    {
+        <tr>
+            <td>@district.Name </td>
+            <td>@district.AveragePricePerSquareMeter.ToString("0.00")€</td>
+            <td>@district.PropertiesCount</td>
+        </tr>
+    }
+</table>
