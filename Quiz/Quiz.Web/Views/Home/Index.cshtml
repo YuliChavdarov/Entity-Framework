@@ -1,0 +1,40 @@
+﻿@model IEnumerable<Quiz.Services.ViewModels.UserQuizViewModel>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+<table class="table table-sm table-hover table-striped">
+    <tr>
+        <th>Quiz Id</th>
+        <th>Title</th>
+        <th>Action</th>
+        <th>Status</th>
+    </tr>
+    @foreach (var quiz in Model)
+    {
+        <tr>
+            <td>@quiz.QuizId</td>
+            <td>@quiz.Title</td>
+            <td>
+                @if(quiz.QuizStatus == Quiz.Services.ViewModels.QuizStatus.NotStarted)
+                {
+                    <a asp-controller="Quiz" asp-action="Test" asp-route-quizId="@quiz.QuizId" class="btn btn-success">Start quiz</a>
+                }
+                else if(quiz.QuizStatus == Quiz.Services.ViewModels.QuizStatus.InProgress)
+                {
+                    <a href="Quiz/Test/?quizId=@quiz.QuizId" class="btn btn-warning">Continue quiz</a>
+                }
+                else
+                {
+                    <a asp-controller="Quiz" asp-action="Results" asp-route-quizId="@quiz.QuizId" class="btn btn-primary">View results</a>
+                }
+            </td>
+            <td>@quiz.QuizStatus.ToString()</td>
+        </tr>
+    }
+</table>
