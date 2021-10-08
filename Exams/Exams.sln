@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.31624.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SoftJail", "SoftJail\SoftJail.csproj", "{CF198650-2AF0-41D1-BF45-FDE0CB3FAB5E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeisterMask", "TeisterMask\TeisterMask.csproj", "{79C45DCF-99C7-49F7-A27C-C1BF1A9C15F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{CF198650-2AF0-41D1-BF45-FDE0CB3FAB5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF198650-2AF0-41D1-BF45-FDE0CB3FAB5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CF198650-2AF0-41D1-BF45-FDE0CB3FAB5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79C45DCF-99C7-49F7-A27C-C1BF1A9C15F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79C45DCF-99C7-49F7-A27C-C1BF1A9C15F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79C45DCF-99C7-49F7-A27C-C1BF1A9C15F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79C45DCF-99C7-49F7-A27C-C1BF1A9C15F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
